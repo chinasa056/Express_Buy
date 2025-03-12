@@ -3,10 +3,62 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { verify, reset } = require('../utils/mailTemplate');
 const { send_mail } = require('../middleware/nodemailer');
-
 const { validate } = require('../utils/utilities');
-const { registerUserSchema, loginSchema, forgotPasswordSchema } = require('../validation/userValidation');
+const { registerUserSchema, loginSchema, forgotPasswordSchema, registerAdminSchema } = require('../validation/userValidation');
 
+exports.registerAdmin = async (req, res) => {
+  try {
+    const validatedData = await validate(req.body, registerAdminSchema);
+      const { fullName, email, password, confirmPassword  } = validatedData;
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        message: 'Password does not match'
+      })
+    };
+
+    const existingEmail = await userModel.find({ email: email.toLowerCase() });
+    if (existingEmail) {
+      return res.status(400).json({
+        message: `Admin with email: ${email} already exist`
+      })
+    };
+
+    const saltedRound = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, saltedRound);
+
+    const user = new userModel({
+      fullName,
+      email,
+      confirmPassword,
+      password: hashedPassword,
+      roles: 'admin'
+    });
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1hr' });
+    const link = `${req.protocol}://${req.get('host')}/api/v1/verify/user/${token}`;
+    const firstName = user.fullName.split(' ')[0];
+
+    const mailOptions = {
+      email: user.email,
+      subject: 'Account Verification',
+      html: verify(link, firstName)
+    };
+
+    await send_mail(mailOptions);
+    await user.save();
+    res.status(201).json({
+      message: 'Account registered successfully',
+      data: user
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      message: 'Error registering user',
+      data: error.message
+    })
+  }
+};
 
 exports.registerUser = async (req, res) => {
   try {
@@ -61,6 +113,7 @@ exports.registerUser = async (req, res) => {
     })
   }
 };
+
 exports.loginUser = async (req, res) => {
     try {
 
@@ -100,13 +153,13 @@ exports.loginUser = async (req, res) => {
         })
       };
   
-      if (user.isVerified === false) {   
+      if (user.IsVerified === false) {   
         return res.status(400).json({
           message: 'Account is not verified, link has been sent to email address'
         })
       }
 
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1day' });
+      const token = jwt.sign({ userId: user._id, email: user.email, roles: user.roles }, process.env.JWT_SECRET, { expiresIn: '1day' });
   
       res.status(200).json({
         message: 'Account login successfull',
@@ -126,6 +179,7 @@ exports.loginUser = async (req, res) => {
       })
     }
 };
+
 exports.verifyUser = async (req, res) => {
     try {
       const { token } = req.params;
@@ -148,13 +202,13 @@ exports.verifyUser = async (req, res) => {
               })
             };
   
-            if (user.isVerified === true) {
+            if (user.IsVerified === true) {
               return res.status(400).json({
                 message: 'Account is verified already'
               })
             };
   
-            const newToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '15mins' });
+            const newToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1hr' });
             const link = `${req.protocol}://${req.get('host')}/api/v1/verify/user/${newToken}`;
             const firstName = user.fullName.split(' ')[0];
   
@@ -178,13 +232,13 @@ exports.verifyUser = async (req, res) => {
             })
           };
   
-          if (user.isVerified === true) {
+          if (user.IsVerified === true) {
             return res.status(400).json({
               message: 'Account is verified already'
             })
           };
   
-          user.isVerified = true;
+          user.IsVerified = true;
           await user.save();
   
           res.status(200).json({
@@ -204,6 +258,7 @@ exports.verifyUser = async (req, res) => {
       })
     }
 };
+
 exports.forgotPassword = async (req, res) => {
     try {
       const validatedData = await validate(req.body, forgotPasswordSchema)
@@ -238,6 +293,7 @@ exports.forgotPassword = async (req, res) => {
       })
     }
   };
+
 exports.resetUserPassword = async (req, res) => {
     try {
       const { token } = req.params;
