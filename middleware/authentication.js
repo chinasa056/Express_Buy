@@ -74,7 +74,7 @@ exports.adminAuth = async (req, res, next) => {
         })
     }
 
-    if (user.roles !== admin) {
+    if (user.roles !== "admin") {
       return res.status(401).json({
         message: "Unauthorized: Please contact Admin",
       });
@@ -83,12 +83,12 @@ exports.adminAuth = async (req, res, next) => {
     req.user = decodedToken;
     next();
   } catch (error) {
+    console.log(error);
     if (error instanceof jwt.JsonWebTokenError) {
       return res.status(403).json({
         message: "Session timed-out: Please login to continue",
       });
     }
-    console.log(error.message);
     
     res.status(500).json({
       message: "Internal Server Error" 

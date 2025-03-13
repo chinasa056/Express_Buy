@@ -4,6 +4,7 @@ const { authenticate, adminAuth} = require('../middleware/authentication');
 
 const router = express.Router();
 
+router.post("/admin/register", registerAdmin)
 router.post("/admin",adminAuth, registerAdmin)
 router.post('/register', registerUser);
 router.post('/login', loginUser);

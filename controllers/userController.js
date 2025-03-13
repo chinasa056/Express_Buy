@@ -17,7 +17,7 @@ exports.registerAdmin = async (req, res) => {
       })
     };
 
-    const existingEmail = await userModel.find({ email: email.toLowerCase() });
+    const existingEmail = await userModel.findOne({ email: email.toLowerCase() });
     if (existingEmail) {
       return res.status(400).json({
         message: `Admin with email: ${email} already exist`
@@ -167,7 +167,7 @@ exports.loginUser = async (req, res) => {
         token
       })
     } catch (error) {
-      console.log(error.message);
+      console.log(error);
       if (error instanceof jwt.JsonWebTokenError) {
         return res.status(400).json({
           message: 'Session expired. Please login again'
@@ -175,7 +175,7 @@ exports.loginUser = async (req, res) => {
       }
       res.status(500).json({
         message: 'Error Logging user In',
-        error: error.message
+        error: error
       })
     }
 };

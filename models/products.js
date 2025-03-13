@@ -26,12 +26,10 @@ const productDetailsSchema = new mongoose.Schema({
     productImage: {
         imageUrl: {
             type: String,
-            require: true
         },
 
         publicId: {
             type: String,
-            require: true
         }
     },
     categoryId: {
