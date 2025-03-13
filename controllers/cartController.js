@@ -4,45 +4,46 @@ const userModel = require("../models/user")
 
 exports.addToCart = async (req, res) => {
     try {
-        const {productId} = req.params
+        const { productId } = req.params
+        const { userId } = req.user
 
         const user = await userModel.findById(userId)
-        if(!user) {
+        if (!user) {
             return res.status(404).json({
                 message: "User not found"
             })
         };
 
         const product = await productModel.findById(productId);
-        if(!product) {
+        if (!product) {
             return res.status(404).json({
                 message: "Product Not Found"
             })
         };
 
-        let cart = await cartModel.findOne({user: userId})
-        if(!cart) {
+        let cart = await cartModel.findOne({ user: userId })
+        if (!cart) {
             cart = new cartModel({
                 user: userId,
                 products: [],
                 grandTotal
             })
         };
-        const productExist = cart.products.find((item) => item.productId.toString() === productId.toString()) 
-        if(productExist) {
+        const productExist = cart.products.find((item) => item.productId.toString() === productId.toString())
+        if (productExist) {
             productExist.quantity += 1
             productExist.unitTotal = productExist.quantity * product.price
-        } else{
+        } else {
             const newProduct = {
                 productId: productId,
                 quantity: product.quantity,
                 price: product.price,
                 unitTotal: product.price * product.quantity,
-                productName: product.name,             
+                productName: product.name,
             }
             cart.products.push(newProduct._id)
         }
-      const subTotal =  cart.products.reduce((accumulator, product) => accumulator + product.unitTotal, 0)
+        const subTotal = cart.products.reduce((accumulator, product) => accumulator + product.unitTotal, 0)
         cart.grandTotal = subTotal;
         await cart.save()
 
@@ -51,73 +52,152 @@ exports.addToCart = async (req, res) => {
             data: cart
         })
     } catch (error) {
-        
+
     }
 };
 
 
-exports.deleteCart = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const { action } = req.body;
-    const cart = await cartModel.findOne({ user: userId });
+exports.updateCart = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const { userId } = req.user
 
-    if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
-    }
+        const user = await userModel.findById(userId)
+        if (!user) {
+            return res.status(404).json({
+                message: "User does not exist"
+            })
+        };
 
-    switch (action) {
-      case "deleteCart":
-        await cartModel.findOneAndDelete({ user: userId });
-        res.status(200).json({ message: "Cart deleted successfully" });
-        break;
+        const product = await productModel.findById(productId)
+        if (!product) {
+            return res.status(404).json({
+                message: "Product not found"
+            })
+        }
 
-      case "deleteProduct":
+        const cart = await cartModel.findOne({ user: userId });
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        };
+
+        const productExist = cart.products.find(
+            (product) => product.productId.toString() === productId.toString()
+        );
+        if (!productExist) {
+            return res.status(404).json({ message: "Product not found in cart" });
+        }
+
         const productIndex = cart.products.findIndex(
-          (product) => product.productId.toString() === productId.toString()
+            (product) => product.productId.toString() === productId.toString()
         );
-        if (productIndex === -1) {
-          return res.status(404).json({ message: "Product not found in cart" });
-        }
-        cart.products.splice(productIndex, 1);
-        const subTotal = cart.products.reduce(
-          (accumulator, product) => accumulator + product.unitTotal,
-          0
-        );
-        cart.grandTotal = subTotal;
-        await cart.save();
-        res.status(200).json({ message: "Product deleted from cart" });
-        break;
 
-      case "reduceQuantity":
-        const productIndexReduce = cart.products.findIndex(
-          (product) => product.productId.toString() === productId.toString()
-        );
-        if (productIndexReduce === -1) {
-          return res.status(404).json({ message: "Product not found in cart" });
-        }
-        if (cart.products[productIndexReduce].quantity === 1) {
-          cart.products.splice(productIndexReduce, 1);
+        if (productExist.quantity === 1) {
+            cart.products.splice(productIndex, 1);
         } else {
-          cart.products[productIndexReduce].quantity -= 1;
-          cart.products[productIndexReduce].unitTotal =
-            cart.products[productIndexReduce].quantity * cart.products[productIndexReduce].unitPrice;
+            productExist.quantity -= 1;
+            productExist.unitTotal = productExist.quantity * productExist.unitPrice;
         }
+
         const subTotalReduce = cart.products.reduce(
-          (accumulator, product) => accumulator + product.unitTotal,
-          0
+            (accumulator, product) => accumulator + product.unitTotal,
+            0
         );
         cart.grandTotal = subTotalReduce;
         await cart.save();
-        res.status(200).json({ message: "Product quantity reduced" });
-        break;
 
-      default:
-        res.status(400).json({ message: "Invalid action" });
-        break;
+        res.status(200).json({ message: "Product quantity reduced" });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
+};
+
+
+
+exports.clearCart = async (req, res) => {
+    try {
+        const { userId } = req.user;
+
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                message: "User does not exist"
+            })
+        };
+
+        const cart = await cartModel.findOne({ user: userId });
+
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
+
+        cart.products = []
+        cart.grandTotal = 0
+
+        await cart.save()
+
+        res.status(200).json({ message: "Cart deleted successfully" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
+};
+
+exports.deleteProduct = async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { productId } = req.params;
+
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        const cart = await cartModel.findOne({ user: userId });
+        if (!cart) {
+            return res.status(404).json({
+                message: "Cart not found"
+            });
+        }
+
+        const productIndex = cart.products.findIndex(
+            (product) => product.productId.toString() === productId.toString()
+        );
+        if (productIndex === -1) {
+            return res.status(404).json({
+                message: "Product not found in cart"
+            });
+        }
+
+        const productExist = cart.products[productIndex];
+
+        if (productExist) {
+            cart.products.splice(productIndex, 1);
+        }
+
+        const subTotal = cart.products.reduce(
+            (accumulator, product) => accumulator + product.unitTotal,
+            0
+        );
+        cart.grandTotal = subTotal;
+
+        await cart.save();
+
+        res.status(200).json({
+            message: "Product removed from cart",
+            data: cart
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
 };
