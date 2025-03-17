@@ -3,7 +3,7 @@ const { authenticate, adminAuth } = require("../middleware/authentication.js")
 
 const router = require("express").Router()
 
-router.post("/product", adminAuth, addProduct)
+router.post("/product/:categoryId", adminAuth, addProduct)
 
 router.get("/allProducts/:productId", authenticate, getAllProducts)
 
