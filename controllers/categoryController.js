@@ -13,6 +13,7 @@ exports.createCategory = async(req, res) => {
         const newCategory = new categoryModel({
             name
         })
+        await newCategory.save()
 
         res.status(201).json({
             message: "New Category Added",
@@ -20,14 +21,33 @@ exports.createCategory = async(req, res) => {
         })
     } catch (error) {
         console.log(error);
-        res.statu(500).json({
+        res.status(500).json({
             message: "Internal Server Error",
             error: error.message
         })
         
-        
     }
 };
+
+exports.getAllCategoryy = async (req, res) => {
+  try {
+    const allCategory = await categoryModel.find()
+
+    res.status(200).json({
+      message: "All Categories Available",
+      data: allCategory
+    })
+    console.log(allCategory);
+    
+  } catch (error) {
+    console.log(error);
+        res.statu(500).json({
+            message: "Internal Server Error",
+            error: error.message
+        })
+    
+  }
+}
 
 exports.deleteCategory = async (req, res) => {
     try {

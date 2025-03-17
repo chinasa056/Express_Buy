@@ -20,29 +20,32 @@ exports.addToCart = async (req, res) => {
                 message: "Product Not Found"
             })
         };
+        console.log("product", product)
 
         let cart = await cartModel.findOne({ user: userId })
         if (!cart) {
             cart = new cartModel({
                 user: userId,
                 products: [],
-                grandTotal
+                // grandTotal:0
             })
         };
-        const productExist = cart.products.find((item) => item.productId.toString() === productId.toString())
+        const productExist = cart.products.find((item) => item.productId.toString() === productId)
+        console.log("PRODUCT EXIST",productExist)
         if (productExist) {
             productExist.quantity += 1
             productExist.unitTotal = productExist.quantity * product.price
         } else {
             const newProduct = {
                 productId: productId,
-                quantity: product.quantity,
-                price: product.price,
-                unitTotal: product.price * product.quantity,
+                quantity: 1,
+                unitPrice: product.price,
+                unitTotal: product.price * 1,
                 productName: product.name,
             }
-            cart.products.push(newProduct._id)
+            cart.products.push(newProduct)
         }
+        
         const subTotal = cart.products.reduce((accumulator, product) => accumulator + product.unitTotal, 0)
         cart.grandTotal = subTotal;
         await cart.save()
@@ -52,9 +55,13 @@ exports.addToCart = async (req, res) => {
             data: cart
         })
     } catch (error) {
-
+        console.log(error);
+        res.status(500).json({ 
+            message: "Internal Server Error" 
+        });
     }
 };
+
 
 
 exports.updateCart = async (req, res) => {

@@ -5,16 +5,16 @@ const cloudinary = require("cloudinary")
 
 exports.addProduct = async (req, res) => {
     try {
-        const { categoryId } = req.params;
-        const { name, description, price, size, color } = req.body
-        const file = req.files
-
-        const product = await productModel.findOne({ name: name })
-        if (product) {
-            return res.status(400).json({
-                message: "You have already added this product"
+        const {userId} = req.user
+        const user = await userModel.findById(userId);
+        if(!user) {
+            return res.status(404).json({
+                message: "User not found"
             })
         }
+        const { categoryId } = req.params;
+        const { description, price } = req.body
+        const file = req.files
 
         const category = await categoryModel.findById(categoryId)
         if (!category) {
@@ -27,11 +27,8 @@ exports.addProduct = async (req, res) => {
         fs.unlinkSync(file.path)
 
         const newProduct = new productModel({
-            name,
             description,
             price,
-            size,
-            color,
             categoryName: category.name,
             productImage: {
                 imageUrl: result.secure_url,
@@ -39,7 +36,7 @@ exports.addProduct = async (req, res) => {
             }
         })
 
-        category.productIds.push(newProduct._id)
+        category.productIds.push(newProduct)
         await newProduct.save()
         await category.save()
 

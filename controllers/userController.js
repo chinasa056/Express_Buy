@@ -30,7 +30,6 @@ exports.registerAdmin = async (req, res) => {
     const user = new userModel({
       fullName,
       email,
-      confirmPassword,
       password: hashedPassword,
       roles: 'admin'
     });
@@ -85,7 +84,6 @@ exports.registerUser = async (req, res) => {
     const user = new userModel({
       fullName,
       email,
-      confirmPassword,
       password: hashedPassword,
     });
 
