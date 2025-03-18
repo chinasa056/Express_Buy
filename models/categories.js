@@ -9,10 +9,11 @@ const categoriesSchema = new mongoose.Schema({
     },
 
     productIds : [{
-        type: String,
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: "Products"
     }]
 }, {timestamps: true})
 
-const categoriesModel = mongoose.model("Categories", categoriesSchema)
+const categoriesModel = mongoose.model("Category", categoriesSchema)
 
 module.exports = categoriesModel
