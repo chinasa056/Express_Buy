@@ -1,20 +1,24 @@
 const productModel = require("../models/products")
 const categoryModel = require("../models/categories")
 const userModel = require("../models/user")
-const cloudinary = require("cloudinary")
+const cloudinary = require("../config/cloudinary")
+const fs = require("fs")
 
 exports.addProduct = async (req, res) => {
     try {
+
+        const { categoryId } = req.params;
+        const file = req.file
+
         const {userId} = req.user
+        const { description, price } = req.body
+        
         const user = await userModel.findById(userId);
         if(!user) {
             return res.status(404).json({
                 message: "User not found"
             })
         }
-        const { categoryId } = req.params;
-        const { description, price } = req.body
-        const file = req.files
 
         const category = await categoryModel.findById(categoryId)
         if (!category) {
@@ -22,6 +26,7 @@ exports.addProduct = async (req, res) => {
                 message: "Category Does Not Exist"
             })
         }
+        console.log(file)
 
         const result = await cloudinary.uploader.upload(file.path);
         fs.unlinkSync(file.path)
@@ -36,7 +41,7 @@ exports.addProduct = async (req, res) => {
             }
         })
 
-        category.productIds.push(newProduct)
+        category.productIds.push(newProduct._id)
         await newProduct.save()
         await category.save()
 
@@ -83,7 +88,7 @@ exports.getOneProduct = async (req, res) => {
         }
 
         res.status(200).json({
-            message: "All Products",
+            message: "Products Retrieved",
             data: product
         })
 
@@ -94,33 +99,6 @@ exports.getOneProduct = async (req, res) => {
         })
     }
 };
-
-exports.getProductsByCategory = async (req, res) => {
-    try {
-
-        const { categoryId } = req.params;
-        const category = await categoryModel.findById(categoryId)
-        if (!category) {
-            return res.status(404).json({
-                message: "Category does not exist"
-            })
-        }
-        const products = await productModel.find({ categoryId }).populate('productIds')
-
-        res.status(200).json({
-            message: "All products",
-            data: products
-        })
-
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            message: "Internal Server Error"
-        })
-    }
-};
-
 
 exports.deleteProduct = async (req, res) => {
     try {

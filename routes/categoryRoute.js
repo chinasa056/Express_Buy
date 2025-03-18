@@ -1,4 +1,4 @@
-const { createCategory, deleteCategory, getProductsByCategory, getAllCategoryy } = require("../controllers/categoryController")
+const { createCategory, getAllCategoryy, getOneCategory } = require("../controllers/categoryController")
 const { authenticate } = require("../middleware/authentication")
 
 const router = require("express").Router()
@@ -7,9 +7,10 @@ router.post("/category", authenticate, createCategory);
 
 router.get("/allCategories", authenticate, getAllCategoryy)
 
-router.delete("/category/delete/:categoryId", authenticate, deleteCategory);
+router.get("/category/:categoryId", authenticate, getOneCategory)
 
-router.delete("/category/AllProducts/:categoryId", authenticate, getProductsByCategory);
+
+
 
 
 
