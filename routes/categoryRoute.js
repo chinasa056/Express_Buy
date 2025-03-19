@@ -10,8 +10,4 @@ router.get("/allCategories", authenticate, getAllCategoryy)
 router.get("/category/:categoryId", authenticate, getOneCategory)
 
 
-
-
-
-
 module.exports = router
