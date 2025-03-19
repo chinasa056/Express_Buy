@@ -35,7 +35,7 @@ exports.registerAdmin = async (req, res) => {
     });
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1hr' });
-    const link = `${req.protocol}://${req.get('host')}/shopey-ten.vercel.app+1/${token}`;
+    const link = `https://shopey-ten.vercel.app/emailverification/token/${token}`;
     const firstName = user.fullName.split(' ')[0];
 
     const mailOptions = {
