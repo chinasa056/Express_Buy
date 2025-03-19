@@ -11,6 +11,7 @@ const userRoute = require('./routes/userRoute');
 const categoryRouter = require("./routes/categoryRoute")
 const productRouter = require("./routes/productRoute")
 const checkoutRouter = require("./routes/checkoutRoute")
+const cartRouter = require("./routes/cartRoute")
 
 app.use(express.json());
 app.use(cors())
@@ -18,10 +19,7 @@ app.use('/api/v1', userRoute)
 app.use('/api/v1', categoryRouter)
 app.use('/api/v1', productRouter)
 app.use('/api/v1', checkoutRouter)
-
-
-
-
+app.use('/api/v1', cartRouter)
 
 
 app.listen(PORT, () => {

@@ -14,11 +14,10 @@ exports.registerUserValidator = (req, res, next) => {
             "string.email": "Please provide a valid email address.",
             "string.empty": "Email cannot be empty."
         }),
-        password: joi.string().pattern(/^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/).required().messages({
+        password: joi.string().min(6).required().messages({
             "any.required": "Password is required.",
             "string.empty": "Password cannot be empty.",
-            "string.min": "Password must be at least 8 characters long.",
-            "string.pattern.base": "Password must include at least one letter and one number and one special character."
+            "string.min": "Password must be at least 6 characters long.",
         }),
         confirmPassword: joi.string().valid(joi.ref("password")).required().messages({
             "any.only": "Confirm Password must match Password",
@@ -44,11 +43,10 @@ exports.loginValidator = (req, res, next) => {
             "string.email": "Please provide a valid email address.",
             "string.empty": "Email cannot be empty."
         }),
-        password: joi.string().pattern(/^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/).required().messages({
+        password: joi.string().min(6).required().messages({
             "any.required": "Password is required.",
             "string.empty": "Password cannot be empty.",
-            "string.min": "Password must be at least 8 characters long.",
-            "string.pattern.base": "Password must include at least one letter and one number and one special character."
+            "string.min": "Password must be at least 6 characters long.",
         })
     });
 
@@ -62,3 +60,4 @@ exports.loginValidator = (req, res, next) => {
     next();
 };
 
+// .pattern(/^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/).

@@ -31,7 +31,7 @@ exports.addToCart = async (req, res) => {
             })
         };
         const productExist = cart.products.find((item) => item.productId.toString() === productId)
-        console.log("PRODUCT EXIST",productExist)
+        console.log("PRODUCT EXIST", productExist)
         if (productExist) {
             productExist.quantity += 1
             productExist.unitTotal = productExist.quantity * product.price
@@ -41,11 +41,11 @@ exports.addToCart = async (req, res) => {
                 quantity: 1,
                 unitPrice: product.price,
                 unitTotal: product.price * 1,
-                productName: product.name,
+                productName: product.description,
             }
             cart.products.push(newProduct)
         }
-        
+
         const subTotal = cart.products.reduce((accumulator, product) => accumulator + product.unitTotal, 0)
         cart.grandTotal = subTotal;
         await cart.save()
@@ -56,15 +56,32 @@ exports.addToCart = async (req, res) => {
         })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ 
-            message: "Internal Server Error" 
+        res.status(500).json({
+            message: "Internal Server Error"
         });
     }
 };
 
+exports.getcart = async (req, res) => {
+    try {
+        const cart = await cartModel.find()
+
+        res.status(200).json({
+            message: "All Products in the cart",
+            data: cart
+        })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
+}
 
 
-exports.updateCart = async (req, res) => {
+
+exports.reduceProductQuantity = async (req, res) => {
     try {
         const { productId } = req.params;
         const { userId } = req.user
@@ -113,7 +130,10 @@ exports.updateCart = async (req, res) => {
         cart.grandTotal = subTotalReduce;
         await cart.save();
 
-        res.status(200).json({ message: "Product quantity reduced" });
+        res.status(200).json({
+            message: "Product quantity reduced",
+            data: cart
+        });
 
     } catch (error) {
         console.log(error);
@@ -145,7 +165,10 @@ exports.clearCart = async (req, res) => {
 
         await cart.save()
 
-        res.status(200).json({ message: "Cart deleted successfully" });
+        res.status(200).json({
+            message: "Cart deleted successfully",
+            data: cart
+        });
 
     } catch (error) {
         console.error(error);
@@ -155,7 +178,7 @@ exports.clearCart = async (req, res) => {
     }
 };
 
-exports.deleteProduct = async (req, res) => {
+exports.deleteProductFromCart = async (req, res) => {
     try {
         const { userId } = req.user;
         const { productId } = req.params;
@@ -208,3 +231,4 @@ exports.deleteProduct = async (req, res) => {
         });
     }
 };
+
