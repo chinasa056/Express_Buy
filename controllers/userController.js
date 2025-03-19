@@ -8,8 +8,7 @@ const { registerUserSchema, loginSchema, forgotPasswordSchema, registerAdminSche
 
 exports.registerAdmin = async (req, res) => {
   try {
-    const validatedData = await validate(req.body, registerAdminSchema);
-    const { fullName, email, password, confirmPassword } = validatedData;
+    const { fullName, email, password, confirmPassword } = req.body
 
     if (password !== confirmPassword) {
       return res.status(400).json({
@@ -87,7 +86,7 @@ exports.registerUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '5mins' });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '15mins' });
     const link = `https://shopey-ten.vercel.app/emailverification/${token}`;
     const firstName = user.fullName.split(' ')[0];
 
