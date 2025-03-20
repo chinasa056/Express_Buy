@@ -186,6 +186,7 @@ exports.verifyUser = async (req, res) => {
         message: 'Token not found'
       })
     };
+    // console.log(token)
 
     jwt.verify(token, process.env.JWT_SECRET, async (error, payload) => {
       if (error) {
@@ -206,7 +207,7 @@ exports.verifyUser = async (req, res) => {
           };
 
           const newToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1hr' });
-          const link = `${req.protocol}://${req.get('host')}/api/v1/verify/user/${newToken}`;
+          const link = `https://shopey-ten.vercel.app/emailverification/${newToken}`;
           const firstName = user.fullName.split(' ')[0];
 
           const mailOptions = {
@@ -328,11 +329,12 @@ exports.resetUserPassword = async (req, res) => {
     });
   } catch (error) {
     console.log(error.message);
-    // if (error instanceof jwt.JsonWebTokenError) {
-    //   return res.status(400).json({
-    //     message: 'Session expired. Please enter your email to resend link' + error.message
-    //   })
-    // };
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(400).json({
+        message: 'Session expired. Please enter your email to resend link',
+        data: error.message
+      })
+    };
     res.status(500).json({
       message: 'Error resetting password'
     })
