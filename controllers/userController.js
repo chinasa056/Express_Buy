@@ -261,6 +261,7 @@ exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body
     const user = await userModel.findOne({ email: email.toLowerCase() });
+    console.log(email.toLowerCase())
 
     if (!user) {
       return res.status(404).json({
@@ -269,7 +270,8 @@ exports.forgotPassword = async (req, res) => {
     };
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1hour' });
-    const link = `https://shopey-ten.vercel.app/resetpassword/token/${token}`; 
+    // const link = `https://shopey-ten.vercel.app/resetpassword/token/${token}`; 
+    const link = `${req.protocol}://${req.get("host")}/forgot_password/user/${token}`
     const firstName = user.fullName.split(' ')[0];
 
     const mailOptions = {
