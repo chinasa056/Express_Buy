@@ -5,8 +5,6 @@ const router = require("express").Router()
 
 const upload = require("../utils/multer.js")
 
-router.post("/product/:categoryId", adminAuth, upload.single("productImage"),addProduct)
-
 router.get("/allProducts", authenticate, upload.single("productImage"),getAllProducts)
 
 router.get("/product/:productId", authenticate, upload.single("productImage"),getOneProduct);

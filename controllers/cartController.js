@@ -57,7 +57,8 @@ exports.addToCart = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            message: "Internal Server Error"
+            message: "Error Adding To Cart",
+            data: error.message
         });
     }
 };
