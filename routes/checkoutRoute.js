@@ -7,5 +7,4 @@ router.post("/payment/initialize", authenticate, initializePyment)
 
 router.post("/checkout", authenticate, checkout)
 
-
 module.exports = router

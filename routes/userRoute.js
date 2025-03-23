@@ -6,11 +6,17 @@ const { registerUserValidator, loginValidator } = require('../middleware/validat
 const router = express.Router();
 
 router.post("/admin/register", registerUserValidator, registerAdmin) 
+
 router.post("/admin",adminAuth, registerAdmin)
+
 router.post('/register',registerUserValidator,registerUser);
+
 router.post('/login',loginValidator, loginUser);
+
 router.get('/verify/user/:token', verifyUser);
+
 router.post('/forgot_password/user', forgotPassword);
+
 router.post('/reset_password/user/:token', resetUserPassword);
 
 
